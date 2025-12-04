@@ -1,0 +1,43 @@
+name: Build Electron App
+
+# Déclenche le build à chaque fois que vous poussez du code (push)
+on:
+  push:
+    branches: [ "main", "master" ]
+
+jobs:
+  build:
+    # On utilise un serveur macOS fourni par GitHub
+    runs-on: macos-latest
+
+    steps:
+      # 1. Récupère votre code
+      - name: Check out code
+        uses: actions/checkout@v4
+
+      # 2. Installe Node.js
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20 # Utilise une version récente de Node
+
+      # 3. Installe vos dépendances (npm install)
+      - name: Install Dependencies
+        run: npm install
+
+      # 4. Lance la construction (Mac et Windows)
+      # Le serveur Mac est capable de construire l'exe Windows aussi
+      - name: Build App
+        run: npm run dist -- --mac --win
+        env:
+          # Nécessaire pour éviter certaines erreurs de publication
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # 5. Sauvegarde les fichiers créés pour que vous puissiez les télécharger
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: mes-installateurs
+          path: |
+            dist/*.dmg
+            dist/*.exe
